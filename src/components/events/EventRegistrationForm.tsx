@@ -12,6 +12,11 @@ import { ApiRequestError } from "@/src/lib/api/client";
 import { getEventStatus } from "@/src/lib/utils/event";
 import type { Event } from "@/src/types/event.types";
 
+function getEventDateKey(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+}
+
 export function EventRegistrationForm({ event }: { event: Event }) {
   const isFull = event.availableSlots === 0;
   const isExpired = getEventStatus(event) === "expired";
@@ -25,6 +30,7 @@ export function EventRegistrationForm({ event }: { event: Event }) {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasRegistered, setHasRegistered] = useState(false);
+  const [hasDateConflict, setHasDateConflict] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -35,10 +41,19 @@ export function EventRegistrationForm({ event }: { event: Event }) {
     getMyRegistrations()
       .then((registrations) => {
         if (active) {
+          const eventDateKey = getEventDateKey(event.date);
           setHasRegistered(
             registrations.some(
               (registration) => registration.eventId === event.id,
             ),
+          );
+          setHasDateConflict(
+            eventDateKey !== null &&
+              registrations.some(
+                (registration) =>
+                  registration.eventId !== event.id &&
+                  getEventDateKey(registration.eventDate) === eventDateKey,
+              ),
           );
         }
       })
@@ -47,7 +62,7 @@ export function EventRegistrationForm({ event }: { event: Event }) {
     return () => {
       active = false;
     };
-  }, [event.id, session]);
+  }, [event.date, event.id, session]);
 
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
@@ -56,7 +71,8 @@ export function EventRegistrationForm({ event }: { event: Event }) {
       isFull ||
       isExpired ||
       isSessionPending ||
-      hasRegistered
+      hasRegistered ||
+      hasDateConflict
     ) {
       return;
     }
@@ -160,13 +176,20 @@ export function EventRegistrationForm({ event }: { event: Event }) {
           )}
         </div>
       ) : null}
+      {hasDateConflict ? (
+        <div className="alert alert-warning text-sm" role="alert">
+          You already have another event registration on this date.
+        </div>
+      ) : null}
       <button
         className={`btn w-full ${hasRegistered ? "btn-success btn-outline" : "btn-primary"}`}
         type="submit"
-        disabled={isSubmitting || hasRegistered}
+        disabled={isSubmitting || hasRegistered || hasDateConflict}
       >
         {hasRegistered ? (
           "Already registered"
+        ) : hasDateConflict ? (
+          "Date already booked"
         ) : isSubmitting ? (
           <>
             <LoaderCircle

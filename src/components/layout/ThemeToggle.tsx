@@ -1,11 +1,11 @@
 "use client";
 
-import { useContext } from "react";
 import { Moon, Sun } from "lucide-react";
-import { ThemeContext } from "@/src/providers/ThemeProvider";
+import { useThemeStore } from "@/src/stores/theme.store";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useContext(ThemeContext);
+  const theme = useThemeStore((state) => state.theme);
+  const setTheme = useThemeStore((state) => state.setTheme);
   const isDark = theme === "night";
 
   return (

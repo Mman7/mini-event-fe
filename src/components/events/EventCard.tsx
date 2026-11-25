@@ -48,8 +48,7 @@ export function EventCard({
             {event.title}
           </h2>
           <p className="mt-2 line-clamp-3 text-sm leading-6 text-base-content/65">
-            {event.description ||
-              "A focused event session for curious minds and practical ideas."}
+            {event.description || "No description provided."}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 rounded-lg bg-base-200 p-3 text-xs text-base-content/65">

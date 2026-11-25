@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ClipboardList, LogIn, LogOut } from "lucide-react";
 import { authClient } from "@/src/lib/auth-client";
 
 export function AccountMenu() {
-  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
@@ -49,7 +47,7 @@ export function AccountMenu() {
             type="button"
             onClick={async () => {
               await authClient.signOut();
-              router.refresh();
+              window.location.replace("/");
             }}
           >
             <LogOut size={16} aria-hidden="true" />

@@ -1,23 +1,18 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
 import { Footer } from "@/src/components/layout/Footer";
 import { Navbar } from "@/src/components/layout/Navbar";
 import { authClient } from "@/src/lib/auth-client";
+import { signInSchema, signUpSchema } from "@/src/lib/schemas/auth.schema";
 
 type Mode = "sign-in" | "sign-up";
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectParam = searchParams.get("redirect");
-  const redirectTo =
-    redirectParam?.startsWith("/") && !redirectParam.startsWith("//")
-      ? redirectParam
-      : "/";
   const [mode, setMode] = useState<Mode>("sign-in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,24 +24,34 @@ function LoginForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    if (isSignUp && !name.trim()) {
-      setError("Enter your name to create an account.");
+    const validationResult = (isSignUp ? signUpSchema : signInSchema).safeParse(
+      isSignUp ? { name, email, password } : { email, password },
+    );
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues[0]?.message ??
+          "Check your account details.",
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = isSignUp
-        ? await authClient.signUp.email({ name: name.trim(), email, password })
-        : await authClient.signIn.email({ email, password });
+      const authResult = isSignUp
+        ? await authClient.signUp.email(
+            signUpSchema.parse({ name, email, password }),
+          )
+        : await authClient.signIn.email(
+            signInSchema.parse({ email, password }),
+          );
 
-      if (result.error) {
+      if (authResult.error) {
         setError(
-          result.error.message ?? "Something went wrong. Please try again.",
+          authResult.error.message ?? "Something went wrong. Please try again.",
         );
         return;
       }
-      router.push(redirectTo);
+      router.replace("/");
       router.refresh();
     } catch {
       setError("Unable to reach the server. Please try again.");
@@ -165,9 +170,5 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginForm />
-    </Suspense>
-  );
+  return <LoginForm />;
 }
