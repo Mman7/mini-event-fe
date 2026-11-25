@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mini Event
 
-## Getting Started
+Frontend for a mini event booking system built with Next.js App Router, TypeScript, Tailwind CSS, DaisyUI, native Fetch, and Zod.
 
-First, run the development server:
+## Setup
 
 ```bash
+npm install
+copy .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `NEXT_PUBLIC_API_URL` to the backend API root, for example:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes
 
-## Learn More
+- `/` lists events with loading, empty, error, search, capacity, and full-event states.
+- `/events/:id` shows event details and the registration form.
 
-To learn more about Next.js, take a look at the following resources:
+## API contract
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The frontend calls:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `GET /events`
+- `GET /events/:id`
+- `POST /events/:id/registrations`
 
-## Deploy on Vercel
+Event responses are currently expected to use the fields `id`, `title`, `date`, `description`, `availableSlots`, and optional `maxAttendees`. The list response is an array and the detail response is one event object. Registration accepts a JSON object response, an empty response, or a response containing an optional `message` field.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Update the schemas and endpoint adapters under `src/lib/` if the backend uses a different documented response envelope.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Themes
+
+The app uses DaisyUI's `corporate` and `night` themes. The selected theme is persisted in browser storage and applies across the application.
+
+## Checks
+
+```bash
+npm run lint
+npm run build
+```
